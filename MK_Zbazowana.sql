@@ -205,3 +205,28 @@ begin
 end P_load_data_into_profit_by_year;
 END PACKAGE_DATA_MIGRATION;
 /
+
+drop function F_PROFIT_BY_YEAR;
+drop procedure P_load_data_into_profit_by_year;
+drop procedure P_DATA_MIGRATION;
+
+execute PACKAGE_DATA_MIGRATION.P_DATA_MIGRATION;
+
+select PACKAGE_DATA_MIGRATION.F_PROFIT_BY_YEAR(2010) FROM DUAL;
+
+create or replace trigger Trig_control_retail_cost
+before insert or update of Retail, Cost on Books
+for each row
+begin
+    if inserting then
+        if :New.Retail > :New.Cost*2 OR :New.Retail < :New.Cost then
+            :New.Retail := :New.Cost*2;
+        end if;
+    else --updating
+        if :New.Retail is null then
+            :New.Retail := :New.Cost*2;
+        end if;
+    end if; 
+end;
+/
+
